@@ -1,0 +1,77 @@
+{
+  "entities": {
+    "fields": {
+      "title": "Field",
+      "description": "An agricultural field or lot",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the field" },
+        "size": { "type": "number", "description": "Size in hectares" },
+        "cropType": { "type": "string", "description": "Type of crop currently planted" },
+        "uid": { "type": "string", "description": "Owner user ID" }
+      },
+      "required": ["name", "size", "uid"]
+    },
+    "activities": {
+      "title": "Activity",
+      "description": "An agricultural operation performed on a field",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string", "format": "date", "description": "Date of the activity" },
+        "field": { "type": "string", "description": "Name or ID of the field" },
+        "type": { "type": "string", "description": "Type of operation (e.g., Sowing, Harvesting)" },
+        "resource": { "type": "string", "description": "Resource used (e.g., Seeds, Fertilizer)" },
+        "quantity": { "type": "string", "description": "Quantity used with unit" },
+        "cost": { "type": "number", "description": "Cost of the activity" },
+        "uid": { "type": "string", "description": "Owner user ID" }
+      },
+      "required": ["date", "field", "type", "cost", "uid"]
+    },
+    "resources": {
+      "title": "Resource",
+      "description": "A resource in inventory (seeds, fertilizers, etc.)",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the resource" },
+        "unitCost": { "type": "number", "description": "Cost per unit" },
+        "unit": { "type": "string", "description": "Unit of measurement (L, kg, h)" },
+        "uid": { "type": "string", "description": "Owner user ID" }
+      },
+      "required": ["name", "unitCost", "unit", "uid"]
+    },
+    "sales": {
+      "title": "Sale",
+      "description": "Revenue from selling products",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string", "format": "date", "description": "Date of the sale" },
+        "product": { "type": "string", "description": "Product sold" },
+        "quantity": { "type": "number", "description": "Quantity sold" },
+        "totalRevenue": { "type": "number", "description": "Total revenue generated" },
+        "field": { "type": "string", "description": "Field the product came from" },
+        "uid": { "type": "string", "description": "Owner user ID" }
+      },
+      "required": ["date", "product", "quantity", "totalRevenue", "uid"]
+    },
+    "machinery": {
+      "title": "Machinery",
+      "description": "Agricultural machinery and equipment",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the machine" },
+        "type": { "type": "string", "description": "Type of machine" },
+        "purchaseDate": { "type": "string", "format": "date", "description": "Date of purchase" },
+        "cost": { "type": "number", "description": "Purchase cost" },
+        "uid": { "type": "string", "description": "Owner user ID" }
+      },
+      "required": ["name", "cost", "uid"]
+    }
+  },
+  "firestore": {
+    "fields": { "schema": "fields", "description": "User fields" },
+    "activities": { "schema": "activities", "description": "User activities" },
+    "resources": { "schema": "resources", "description": "User inventory" },
+    "sales": { "schema": "sales", "description": "User sales/revenue" },
+    "machinery": { "schema": "machinery", "description": "User machinery" }
+  }
+}

@@ -1,0 +1,112 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+    
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.uid;
+    }
+    
+    function uidUnchanged() {
+      return !('uid' in request.resource.data) || request.resource.data.uid == request.auth.uid;
+    }
+    
+    function uidNotModified() {
+      return !('uid' in request.resource.data) || request.resource.data.uid == resource.data.uid;
+    }
+
+    // ===============================================================
+    // Validation Functions
+    // ===============================================================
+
+    function isValidField(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.size is number && data.size >= 0 &&
+             data.uid == request.auth.uid;
+    }
+
+    function isValidActivity(data) {
+      return data.date is string &&
+             data.field is string &&
+             data.type is string &&
+             data.cost is number &&
+             data.uid == request.auth.uid;
+    }
+
+    function isValidResource(data) {
+      return data.name is string &&
+             data.unitCost is number &&
+             data.unit is string &&
+             data.uid == request.auth.uid;
+    }
+
+    function isValidSale(data) {
+      return data.date is string &&
+             data.product is string &&
+             data.quantity is number &&
+             data.totalRevenue is number &&
+             data.uid == request.auth.uid;
+    }
+
+    function isValidMachinery(data) {
+      return data.name is string &&
+             data.cost is number &&
+             data.uid == request.auth.uid;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /fields/{fieldId} {
+      allow read: if isDocOwner();
+      allow create: if isAuthenticated() && isValidField(request.resource.data);
+      allow update: if isDocOwner() && isValidField(request.resource.data) && uidNotModified();
+      allow delete: if isDocOwner();
+    }
+
+    match /activities/{activityId} {
+      allow read: if isDocOwner();
+      allow create: if isAuthenticated() && isValidActivity(request.resource.data);
+      allow update: if isDocOwner() && isValidActivity(request.resource.data) && uidNotModified();
+      allow delete: if isDocOwner();
+    }
+
+    match /resources/{resourceId} {
+      allow read: if isDocOwner();
+      allow create: if isAuthenticated() && isValidResource(request.resource.data);
+      allow update: if isDocOwner() && isValidResource(request.resource.data) && uidNotModified();
+      allow delete: if isDocOwner();
+    }
+
+    match /sales/{saleId} {
+      allow read: if isDocOwner();
+      allow create: if isAuthenticated() && isValidSale(request.resource.data);
+      allow update: if isDocOwner() && isValidSale(request.resource.data) && uidNotModified();
+      allow delete: if isDocOwner();
+    }
+
+    match /machinery/{machineId} {
+      allow read: if isDocOwner();
+      allow create: if isAuthenticated() && isValidMachinery(request.resource.data);
+      allow update: if isDocOwner() && isValidMachinery(request.resource.data) && uidNotModified();
+      allow delete: if isDocOwner();
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

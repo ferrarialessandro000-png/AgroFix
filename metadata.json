@@ -1,0 +1,5 @@
+{
+  "name": "AgroFix",
+  "description": "Sistema di gestione data-driven per aziende agricole per monitorare costi, attività e profitti per singolo lotto.",
+  "requestFramePermissions": []
+}
