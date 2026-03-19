@@ -13,6 +13,9 @@ import { getFirestore, collection, query, where, onSnapshot, addDoc, updateDoc, 
 import firebaseConfig from '../firebase-applet-config.json';
 
 // Initialize Firebase SDK
+if (!firebaseConfig || !firebaseConfig.apiKey) {
+  console.error("Firebase configuration is missing or incomplete in firebase-applet-config.json");
+}
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const auth = getAuth(app);

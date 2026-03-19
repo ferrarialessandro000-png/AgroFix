@@ -122,7 +122,15 @@ const Login = () => {
       await loginWithGoogle();
     } catch (error: any) {
       console.error("Login failed:", error);
-      setError("Accesso con Google fallito.");
+      if (error.code === 'auth/popup-blocked') {
+        setError("Il browser ha bloccato il pop-up. Abilita i pop-up per questo sito.");
+      } else if (error.code === 'auth/operation-not-allowed') {
+        setError("L'accesso con Google non è abilitato nella console Firebase.");
+      } else if (error.code === 'auth/unauthorized-domain') {
+        setError("Questo dominio non è autorizzato nella console Firebase.");
+      } else {
+        setError(`Errore Google: ${error.message || "Accesso fallito."}`);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -142,14 +150,16 @@ const Login = () => {
       }
     } catch (error: any) {
       console.error("Email auth failed:", error);
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
         setError("Email o password non corretti.");
       } else if (error.code === 'auth/email-already-in-use') {
         setError("Email già in uso.");
       } else if (error.code === 'auth/weak-password') {
         setError("La password deve avere almeno 6 caratteri.");
+      } else if (error.code === 'auth/operation-not-allowed') {
+        setError("L'accesso via Email non è abilitato nella console Firebase.");
       } else {
-        setError("Si è verificato un errore durante l'autenticazione.");
+        setError(`Errore: ${error.message || "Si è verificato un errore."}`);
       }
     } finally {
       setIsLoading(false);
