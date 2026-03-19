@@ -46,6 +46,7 @@
       "properties": {
         "date": { "type": "string", "format": "date", "description": "Date of the sale" },
         "product": { "type": "string", "description": "Product sold" },
+        "buyerName": { "type": "string", "description": "Name of the buyer" },
         "quantity": { "type": "number", "description": "Quantity sold" },
         "totalRevenue": { "type": "number", "description": "Total revenue generated" },
         "field": { "type": "string", "description": "Field the product came from" },

@@ -54,6 +54,7 @@ service cloud.firestore {
     function isValidSale(data) {
       return data.date is string &&
              data.product is string &&
+             (data.buyerName is string || !('buyerName' in data)) &&
              data.quantity is number &&
              data.totalRevenue is number &&
              data.uid == request.auth.uid;
