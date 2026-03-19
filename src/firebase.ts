@@ -3,11 +3,15 @@ import {
   getAuth, 
   GoogleAuthProvider, 
   signInWithPopup, 
+  signInWithRedirect,
+  getRedirectResult,
   signOut, 
   onAuthStateChanged, 
   User,
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword
+  signInWithEmailAndPassword,
+  setPersistence,
+  browserLocalPersistence
 } from 'firebase/auth';
 import { getFirestore, collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, doc, getDoc, getDocs, getDocFromServer } from 'firebase/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
@@ -19,10 +23,15 @@ if (!firebaseConfig || !firebaseConfig.apiKey) {
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const auth = getAuth(app);
+
+// Ensure persistence is set to local
+setPersistence(auth, browserLocalPersistence).catch(err => console.error("Persistence error:", err));
+
 export const googleProvider = new GoogleAuthProvider();
 
 // Auth Helpers
 export const loginWithGoogle = () => signInWithPopup(auth, googleProvider);
+export const loginWithGoogleRedirect = () => signInWithRedirect(auth, googleProvider);
 export const loginWithEmail = (email: string, pass: string) => signInWithEmailAndPassword(auth, email, pass);
 export const registerWithEmail = (email: string, pass: string) => createUserWithEmailAndPassword(auth, email, pass);
 export const logout = () => signOut(auth);
@@ -91,5 +100,5 @@ async function testConnection() {
 }
 testConnection();
 
-export { onAuthStateChanged };
+export { onAuthStateChanged, getRedirectResult };
 export type { User };

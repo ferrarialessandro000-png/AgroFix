@@ -44,6 +44,8 @@ import {
   auth, 
   db, 
   loginWithGoogle, 
+  loginWithGoogleRedirect,
+  getRedirectResult,
   loginWithEmail,
   registerWithEmail,
   logout, 
@@ -123,7 +125,7 @@ const Login = () => {
     } catch (error: any) {
       console.error("Login failed:", error);
       if (error.code === 'auth/popup-blocked') {
-        setError("Il browser ha bloccato il pop-up. Abilita i pop-up per questo sito.");
+        setError("Il browser ha bloccato il pop-up. Clicca 'Usa Redirect' se il problema persiste.");
       } else if (error.code === 'auth/operation-not-allowed') {
         setError("L'accesso con Google non è abilitato nella console Firebase.");
       } else if (error.code === 'auth/unauthorized-domain') {
@@ -135,6 +137,35 @@ const Login = () => {
       setIsLoading(false);
     }
   };
+
+  const handleGoogleRedirect = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      await loginWithGoogleRedirect();
+    } catch (error: any) {
+      console.error("Redirect login failed:", error);
+      setError(`Errore Redirect: ${error.message}`);
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const checkRedirect = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result?.user) {
+          // User is signed in via redirect
+        }
+      } catch (error: any) {
+        console.error("Redirect result error:", error);
+        if (error.code === 'auth/unauthorized-domain') {
+          setError("Dominio non autorizzato per il redirect.");
+        }
+      }
+    };
+    checkRedirect();
+  }, []);
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -222,14 +253,24 @@ const Login = () => {
           <div className="relative flex justify-center text-[10px] uppercase tracking-widest font-bold"><span className="bg-white/95 px-2 text-slate-400">Oppure</span></div>
         </div>
 
-        <button
-          onClick={handleGoogleLogin}
-          disabled={isLoading}
-          className="w-full py-3.5 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50"
-        >
-          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="Google" />
-          Google
-        </button>
+        <div className="flex flex-col gap-3">
+          <button
+            onClick={handleGoogleLogin}
+            disabled={isLoading}
+            className="w-full py-3.5 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50"
+          >
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="Google" />
+            Google (Pop-up)
+          </button>
+          
+          <button
+            onClick={handleGoogleRedirect}
+            disabled={isLoading}
+            className="w-full py-2 text-[10px] font-bold text-slate-400 hover:text-emerald-700 transition-all uppercase tracking-widest"
+          >
+            Problemi con il pop-up? Usa Redirect
+          </button>
+        </div>
 
         <div className="mt-8">
           <button 
