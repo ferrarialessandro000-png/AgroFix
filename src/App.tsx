@@ -44,6 +44,8 @@ import {
   auth, 
   db, 
   loginWithGoogle, 
+  loginWithEmail,
+  registerWithEmail,
   logout, 
   onAuthStateChanged, 
   User,
@@ -108,13 +110,47 @@ const ACTIVITY_TYPES = ['Concimazione', 'Semina', 'Raccolta', 'Irrigazione', 'Tr
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = async () => {
+  const handleGoogleLogin = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       await loginWithGoogle();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login failed:", error);
+      setError("Accesso con Google fallito.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) return;
+    
+    setIsLoading(true);
+    setError(null);
+    try {
+      if (isRegistering) {
+        await registerWithEmail(email, password);
+      } else {
+        await loginWithEmail(email, password);
+      }
+    } catch (error: any) {
+      console.error("Email auth failed:", error);
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        setError("Email o password non corretti.");
+      } else if (error.code === 'auth/email-already-in-use') {
+        setError("Email già in uso.");
+      } else if (error.code === 'auth/weak-password') {
+        setError("La password deve avere almeno 6 caratteri.");
+      } else {
+        setError("Si è verificato un errore durante l'autenticazione.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -124,30 +160,79 @@ const Login = () => {
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 bg-[url('https://picsum.photos/seed/farm/1920/1080?blur=10')] bg-cover bg-center">
       <div className="absolute inset-0 bg-emerald-900/40 backdrop-blur-sm" />
       <div className="max-w-md w-full bg-white/95 backdrop-blur-md rounded-[2.5rem] shadow-2xl p-10 text-center border border-white/20 relative z-10">
-        <div className="w-20 h-20 bg-emerald-800 rounded-3xl flex items-center justify-center text-white mx-auto mb-8 shadow-xl shadow-emerald-900/20">
-          <Sprout size={40} />
+        <div className="w-16 h-16 bg-emerald-800 rounded-2xl flex items-center justify-center text-white mx-auto mb-6 shadow-xl shadow-emerald-900/20">
+          <Sprout size={32} />
         </div>
-        <h1 className="text-4xl font-black text-slate-900 mb-2 tracking-tight">AgroFix</h1>
-        <p className="text-slate-500 mb-10 font-medium">Gestione Aziendale Agricola con Isolamento Totale dei Dati</p>
+        <h1 className="text-3xl font-black text-slate-900 mb-1 tracking-tight">AgroFix</h1>
+        <p className="text-slate-500 mb-8 text-sm font-medium">Gestione Aziendale Agricola</p>
         
-        <div className="space-y-4">
+        <form onSubmit={handleEmailAuth} className="space-y-4 mb-6">
+          <div className="text-left">
+            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Email</label>
+            <input 
+              type="email" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-3 bg-slate-100 border-none rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 transition-all"
+              placeholder="nome@azienda.it"
+              required
+            />
+          </div>
+          <div className="text-left">
+            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Password</label>
+            <input 
+              type="password" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-3 bg-slate-100 border-none rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 transition-all"
+              placeholder="••••••••"
+              required
+            />
+          </div>
+
+          {error && (
+            <p className="text-xs font-bold text-orange-600 bg-orange-50 py-2 rounded-lg">{error}</p>
+          )}
+
           <button
-            onClick={handleLogin}
+            type="submit"
             disabled={isLoading}
-            className="w-full py-4 bg-emerald-800 text-white font-bold rounded-2xl hover:bg-emerald-900 transition-all flex items-center justify-center gap-3 shadow-lg shadow-emerald-900/20 active:scale-[0.98] disabled:opacity-50"
+            className="w-full py-3.5 bg-emerald-800 text-white font-bold rounded-xl hover:bg-emerald-900 transition-all shadow-lg shadow-emerald-900/20 active:scale-[0.98] disabled:opacity-50"
           >
             {isLoading ? (
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" />
             ) : (
-              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="Google" />
+              isRegistering ? 'Crea Account' : 'Accedi'
             )}
-            Accedi con Google
           </button>
-          
-          <div className="flex items-center gap-2 justify-center text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-6">
-            <Lock size={12} />
-            Strict Multi-Tenancy Active
-          </div>
+        </form>
+
+        <div className="relative mb-6">
+          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200"></div></div>
+          <div className="relative flex justify-center text-[10px] uppercase tracking-widest font-bold"><span className="bg-white/95 px-2 text-slate-400">Oppure</span></div>
+        </div>
+
+        <button
+          onClick={handleGoogleLogin}
+          disabled={isLoading}
+          className="w-full py-3.5 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50"
+        >
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="Google" />
+          Google
+        </button>
+
+        <div className="mt-8">
+          <button 
+            onClick={() => setIsRegistering(!isRegistering)}
+            className="text-xs font-bold text-emerald-700 hover:underline"
+          >
+            {isRegistering ? 'Hai già un account? Accedi' : 'Nuovo utente? Registrati ora'}
+          </button>
+        </div>
+        
+        <div className="flex items-center gap-2 justify-center text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-6">
+          <Lock size={12} />
+          Multi-Tenancy Active
         </div>
       </div>
     </div>
